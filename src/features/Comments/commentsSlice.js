@@ -6,10 +6,20 @@ import {
 
 export const fetchComments = createAsyncThunk(
   "comments/fetchComments",
-  async (_, { dispatch }) => {
+  async () => {
     return await fetch(
       "https://jsonplaceholder.typicode.com/comments?_limit=5"
     ).then((res) => res.json());
+  }
+);
+
+export const deleteComment = createAsyncThunk(
+  "comments/deleteComment",
+  async (id) => {
+    await fetch(`https://jsonplaceholder.typicode.com/comments/${id}`, {
+      method: "DELETE",
+    });
+    return id;
   }
 );
 
@@ -32,9 +42,21 @@ const commentsSlice = createSlice({
     [fetchComments.rejected](state) {
       state.loading = false;
     },
+    [deleteComment.pending](state) {
+      state.loading = true;
+    },
+    [deleteComment.rejected](state) {
+      state.loading = false;
+    },
+    [deleteComment.fulfilled](state, { payload: id }) {
+      state.loading = false;
+      commentAdapter.removeOne(state, id);
+    },
   },
 });
 
-export const commentsSelectors = commentAdapter.getSelectors((state) => state.comments)
+export const commentsSelectors = commentAdapter.getSelectors(
+  (state) => state.comments
+);
 
 export default commentsSlice.reducer;
